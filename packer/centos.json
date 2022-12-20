@@ -1,0 +1,96 @@
+{
+"builders": [
+    {
+      "boot_command": [
+        "<tab>",
+        "inst.text inst.ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg",
+        "<enter>","<wait>"
+      ],
+      "boot_wait": "20s",
+
+      "disk_size": "10240",
+      "export_opts": [
+        "--manifest",
+        "--vsys",
+        "0",
+        "--description",
+        "{{user `artifact_description`}}",
+        "--version",
+        "{{user `artifact_version`}}"
+      ],
+
+      "guest_os_type": "RedHat_64",
+
+      "http_directory": "http",
+
+      "iso_checksum": "fc0ddf5856fa0f38bb57a5d44fae43d9947f020071357596a60725e67f3d3fb4",
+
+      "iso_url": "http://mirror.linux-ia64.org/centos/8-stream/isos/x86_64/CentOS-Stream-8-x86_64-20221125-boot.iso",
+
+      "name": "{{user `image_name`}}",
+      "output_directory": "builds",
+      "shutdown_command": "echo 'vagrant' | sudo -S shutdown -h now",
+      "shutdown_timeout": "9m",
+
+      "ssh_password": "vagrant",
+
+      "ssh_port": 22,
+      "ssh_pty": true,
+      "ssh_timeout": "60m",
+      "ssh_username": "vagrant",
+
+      "type": "virtualbox-iso",
+      "headless": "false",
+
+      "vboxmanage": [
+        [ "modifyvm", "{{.Name}}", "--memory", "1536" ],
+        [ "modifyvm", "{{.Name}}", "--cpus", "2" ]
+      ],
+      "vm_name": "packer-centos-vm"
+    }
+  ],
+
+  "post-processors": [
+    {
+      "compression_level": "7",
+      "output": "centos-{{user `artifact_version`}}-kernel-6-x86_64-Minimal.box",
+      "type": "vagrant"
+    }
+  ],
+
+"provisioners": [
+    {
+      "execute_command": "echo 'vagrant' | sudo -S sh -c '{{ .Vars }} {{ .Path }}'",
+      "expect_disconnect": true,
+      "valid_exit_codes": [ 0, 100 ],
+      "override": {
+        "{{user `image_name`}}": {
+         "scripts": [ "scripts/stage-1-kernel-update.sh" ]
+        }
+      },
+      "pause_before": "30s",
+      "start_retry_timeout": "1m",
+      "type": "shell"
+    },
+    {
+      "execute_command": "echo 'vagrant' | sudo -S sh -c '{{ .Vars }} {{ .Path }}'",
+      "expect_disconnect": true,
+      "valid_exit_codes": [ 0, 100 ],
+      "override": {
+        "{{user `image_name`}}": {
+         "scripts": [ "scripts/stage-2-clean.sh" ]
+        }
+      },
+      "pause_before": "30s",
+      "start_retry_timeout": "1m",
+      "type": "shell"
+    }
+
+  ],
+
+"variables": {
+    "artifact_description": "CentOS Stream 8 with kernel 6.x",
+    "artifact_version": "8",
+    "image_name": "centos-8"
+  }
+}
