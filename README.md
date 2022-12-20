@@ -5,6 +5,7 @@
 3) Загрузить Vagrant box в Vagrant Cloud
 
 В результате работы создан vagrant box и опубликован на vagrant cloud. Результирующий vagrant файл в github:
+https://github.com/dmn907/hw01/blob/main/Vagrantfile
 
 
 В ходе работы собран box c версией ядра 6.1. К моменту сборки kernel_ml соответствует версии ядра 6.1:
